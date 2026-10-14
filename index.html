@@ -51,6 +51,20 @@
     .sa-brand-text h1{margin:0;font-size:1.25rem;}
     .sa-brand-text p{margin:2px 0 0;font-size:0.72rem;color:var(--grey);text-transform:uppercase;letter-spacing:.05em;}
     .sa-top-actions{display:flex;gap:10px;flex-wrap:wrap;position:relative;}
+
+    .sa-dur-box{background:linear-gradient(160deg,#f5f3ff,#eef2ff);border:1.5px solid #ddd6fe;border-radius:16px;padding:14px;margin-bottom:14px;}
+    .sa-dur-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+    .sa-dur-ic{width:38px;height:38px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;font-size:1.15rem;box-shadow:0 2px 8px rgba(91,33,182,.15);}
+    .sa-dur-title{font-weight:800;font-size:0.88rem;color:#3730a3;}
+    .sa-dur-sub{font-size:0.72rem;color:#6366f1;font-weight:600;}
+    .sa-dur-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
+    .sa-dur-chip{background:#fff;color:#4338ca;border:1.5px solid #c7d2fe;border-radius:12px;padding:10px 4px;display:flex;flex-direction:column;align-items:center;gap:0;line-height:1.1;width:auto;margin:0;cursor:pointer;transition:all .15s;box-shadow:none;}
+    .sa-dur-chip b{font-size:1.15rem;font-weight:800;}
+    .sa-dur-chip span{font-size:0.62rem;font-weight:700;opacity:.75;text-transform:uppercase;letter-spacing:.05em;}
+    .sa-dur-chip:hover{border-color:#818cf8;transform:translateY(-1px);}
+    .sa-dur-chip.on{background:linear-gradient(135deg,#6366f1,#4f46e5);color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(79,70,229,.35);}
+    .sa-dur-note{margin-top:11px;font-size:0.7rem;color:#475569;font-weight:600;line-height:1.45;}
+    .sa-send-btn{width:100%;padding:13px;border:none;border-radius:12px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;font-weight:800;font-size:0.88rem;box-shadow:0 8px 20px rgba(79,70,229,.3);}
     .sa-btn-ghost{background:var(--bg2);color:var(--dark);border:1.5px solid var(--border);padding:10px 16px;font-size:0.78rem;box-shadow:0 1px 3px rgba(0,0,0,0.04);}
     .sa-btn-danger{background:#fef2f2;color:#dc2626;border:1.5px solid #fecaca;padding:10px 16px;font-size:0.78rem;}
     .sa-sync-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--good);margin-right:6px;box-shadow:0 0 0 0 rgba(22,163,74,0.5);animation:sa-pulse 2s infinite;}
@@ -4629,15 +4643,20 @@ function closeSaAccessAdminModal(){
     _saAccessTargetId = null;
 }
 
+function saPickAccessMinutes(m){
+    _saAccessMinutes = m;
+    document.querySelectorAll('#sa-access-status-area .sa-dur-chip').forEach(c => c.classList.toggle('on', parseInt(c.dataset.m, 10) === m));
+    const l = document.getElementById('sa-dur-live'); if (l) l.innerText = m + ' minutes';
+}
 function saAccessSendButtonHtml(){
-    const opts = [10,20,30,40,50,60].map(m => `<option value="${m}"${m === _saAccessMinutes ? ' selected' : ''}>${m} minutes</option>`).join('');
-    return `<div class="input-group" style="margin-bottom:12px;">
-            <label>Access Duration</label>
-            <select id="sa-access-minutes" onchange="_saAccessMinutes = parseInt(this.value, 10) || 30">${opts}</select>
-            <div style="font-size:0.7rem;color:var(--grey);margin-top:5px;line-height:1.4;">Once the admin accepts, you can use the dashboard for this long. When the time ends you are logged out automatically.</div>
+    const chips = [10,20,30,40,50,60].map(m => `<button type="button" class="sa-dur-chip${m === _saAccessMinutes ? ' on' : ''}" data-m="${m}" onclick="saPickAccessMinutes(${m})"><b>${m}</b><span>min</span></button>`).join('');
+    return `<div class="sa-dur-box">
+            <div class="sa-dur-head"><span class="sa-dur-ic">⏱️</span><div><div class="sa-dur-title">Access Duration</div><div class="sa-dur-sub">Selected: <b id="sa-dur-live">${_saAccessMinutes} minutes</b></div></div></div>
+            <div class="sa-dur-grid">${chips}</div>
+            <div class="sa-dur-note">🔒 When this time ends you are logged out automatically — no warning popup.</div>
         </div>
-        <button onclick="saSendAccessRequest()" style="background:#5b21b6;color:#fff;width:100%;padding:12px;border-radius:10px;border:none;font-weight:800;">📨 Send Access Request</button>
-        <div style="font-size:0.72rem;color:var(--grey);text-align:center;margin-top:8px;">The admin will see this on their dashboard and can Accept or Reject it. It expires automatically after 10 minutes if there's no response.</div>`;
+        <button onclick="saSendAccessRequest()" class="sa-send-btn">📨 Send Access Request</button>
+        <div style="font-size:0.7rem;color:var(--grey);text-align:center;margin-top:10px;line-height:1.5;">The admin sees this on their dashboard and can Accept or Reject. It expires after 10 minutes if there is no response.</div>`;
 }
 
 function renderSaAccessStatus(adminId){
